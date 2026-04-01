@@ -1,5 +1,9 @@
 #include "miller_rabin.h"
 
+#include <array>
+#include <random>
+#include <stdexcept>
+
 using namespace std;
 
 big_int modular_multiply_ordinary(const big_int& a, const big_int& b, const big_int& mod) {
@@ -83,4 +87,51 @@ bool miller_rabin(const big_int& n, bool use_fast_mod) {
     }
 
     return true;
+}
+
+big_int generate_probable_prime(size_t bits) {
+    if (bits < 2) {
+        throw runtime_error("bit length must be at least 2");
+    }
+
+    static random_device rd;
+    static mt19937_64 rng(rd());
+    static const array<int, 10> small_primes = {3, 5, 7, 11, 13, 17, 19, 23, 29, 31};
+    uniform_int_distribution<int> bit_dist(0, 1);
+
+    while (true) {
+        big_int candidate(0);
+        for (size_t i = 0; i < bits; ++i) {
+            int bit = 0;
+            if (i == 0 || i == bits - 1) {
+                bit = 1;
+            } else {
+                bit = bit_dist(rng);
+            }
+
+            candidate = candidate * 2;
+            if (bit == 1) {
+                candidate = candidate + big_int(1);
+            }
+        }
+
+        bool divisible = false;
+        for (int p : small_primes) {
+            if (candidate == big_int(p)) {
+                divisible = false;
+                break;
+            }
+            if (candidate.mod_int(p) == 0) {
+                divisible = true;
+                break;
+            }
+        }
+        if (divisible) {
+            continue;
+        }
+
+        if (miller_rabin(candidate, true)) {
+            return candidate;
+        }
+    }
 }
