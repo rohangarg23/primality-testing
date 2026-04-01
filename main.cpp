@@ -3,9 +3,11 @@
 #include <vector>
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 
+#include "aks.h"
 #include "big_int.h"
 #include "miller_rabin.h"
 
@@ -33,16 +35,36 @@ string extract_json_string(const string& line) {
 }
 
 void print_single_result(const big_int& n) {
+    auto ordinary_start = chrono::steady_clock::now();
     bool ordinary_result = miller_rabin(n, false);
+    auto ordinary_end = chrono::steady_clock::now();
+
+    auto fast_start = chrono::steady_clock::now();
     bool fast_result = miller_rabin(n, true);
+    auto fast_end = chrono::steady_clock::now();
+
+    auto aks_start = chrono::steady_clock::now();
+    bool aks_result = aks_primality_test(n);
+    auto aks_end = chrono::steady_clock::now();
+
+    chrono::duration<double, milli> ordinary_ms = ordinary_end - ordinary_start;
+    chrono::duration<double, milli> fast_ms = fast_end - fast_start;
+    chrono::duration<double, milli> aks_ms = aks_end - aks_start;
 
     cout << "Number: " << n << '\n';
     cout << "Bit length: " << n.bit_length() << '\n';
     cout << "Miller-Rabin using ordinary modulo: "
-         << (ordinary_result ? "probably prime" : "composite") << '\n';
+         << (ordinary_result ? "probably prime" : "composite")
+         << " | time: " << ordinary_ms.count() << " ms\n";
     cout << "Miller-Rabin using fast modulo: "
-         << (fast_result ? "probably prime" : "composite") << '\n';
-    cout << "Both methods agree: " << ((ordinary_result == fast_result) ? "yes" : "no") << '\n';
+         << (fast_result ? "probably prime" : "composite")
+         << " | time: " << fast_ms.count() << " ms\n";
+    cout << "AKS primality test: "
+         << (aks_result ? "prime" : "composite")
+         << " | time: " << aks_ms.count() << " ms\n";
+    cout << "All methods agree: "
+         << ((ordinary_result == fast_result && fast_result == aks_result) ? "yes" : "no")
+         << '\n';
 }
 
 void run_decimal_mode() {
