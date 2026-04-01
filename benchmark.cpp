@@ -34,46 +34,27 @@ TimingResult benchmark_number(const big_int& n) {
 }
 
 big_int generate_candidate(int bits) {
-    if (bits <= 1) {
-        return big_int(1);
+    if (bits <= 0) {
+        return big_int(0);
     }
-
-    static const string hex_digits = "0123456789abcdef";
-    static const int small_primes[] = {3, 5, 7, 11, 13, 17, 19, 23, 29, 31};
 
     mt19937_64 rng(1234567ULL + static_cast<unsigned long long>(bits) * 97ULL);
-    int hex_len = (bits + 3) / 4;
-    int top_bits = bits - (hex_len - 1) * 4;
+    uniform_int_distribution<int> bit_dist(0, 1);
 
-    while (true) {
-        string hex(hex_len, '0');
-        int low = 1 << (top_bits - 1);
-        int high = (1 << top_bits) - 1;
-        uniform_int_distribution<int> first_dist(low, high);
-        int first_value = first_dist(rng);
-        hex[0] = hex_digits[first_value];
+    string binary(bits, '0');
+    for (int i = 0; i < bits; ++i) {
+        binary[i] = static_cast<char>('0' + bit_dist(rng));
+    }
 
-        uniform_int_distribution<int> dist(0, 15);
-        for (int i = 1; i < hex_len - 1; ++i) {
-            hex[i] = hex_digits[dist(rng)];
-        }
-
-        static const char odd_digits[] = {'1', '3', '5', '7', '9', 'b', 'd', 'f'};
-        uniform_int_distribution<int> odd_dist(0, 7);
-        hex[hex_len - 1] = odd_digits[odd_dist(rng)];
-
-        big_int candidate = big_int::from_hex(hex);
-        bool divisible = false;
-        for (int p : small_primes) {
-            if (candidate.mod_int(p) == 0) {
-                divisible = true;
-                break;
-            }
-        }
-        if (!divisible && static_cast<int>(candidate.bit_length()) == bits) {
-            return candidate;
+    big_int candidate(0);
+    for (char bit : binary) {
+        candidate = candidate * 2;
+        if (bit == '1') {
+            candidate = candidate + big_int(1);
         }
     }
+
+    return candidate;
 }
 
 }  // namespace
