@@ -10,5 +10,7 @@ big_int modular_multiply_fast(const big_int& a, const big_int& b, const big_int&
 big_int modular_power(big_int base, big_int exponent, const big_int& mod, bool use_fast_mod);
 bool miller_rabin(const big_int& n, bool use_fast_mod);
 big_int generate_probable_prime(std::size_t bits);
+big_int next_probable_prime(const big_int& n, bool use_fast_mod = true);
+bool previous_probable_prime(const big_int& n, big_int& result, bool use_fast_mod = true);
 
 #endif
