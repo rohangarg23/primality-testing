@@ -64,9 +64,20 @@ int main(int argc, char* argv[]) {
     bool aks = aks_primality_test(n);
     auto aks_end = chrono::steady_clock::now();
 
+    auto previous_start = chrono::steady_clock::now();
+    big_int previous_prime;
+    bool has_previous_prime = previous_probable_prime(n, previous_prime, true);
+    auto previous_end = chrono::steady_clock::now();
+
+    auto next_start = chrono::steady_clock::now();
+    big_int next_prime = next_probable_prime(n, true);
+    auto next_end = chrono::steady_clock::now();
+
     chrono::duration<double, milli> ordinary_ms = ordinary_end - ordinary_start;
     chrono::duration<double, milli> fast_ms = fast_end - fast_start;
     chrono::duration<double, milli> aks_ms = aks_end - aks_start;
+    chrono::duration<double, milli> previous_ms = previous_end - previous_start;
+    chrono::duration<double, milli> next_ms = next_end - next_start;
 
     cout << "number=" << n.to_string() << '\n';
     cout << "bit_length=" << n.bit_length() << '\n';
@@ -76,6 +87,12 @@ int main(int argc, char* argv[]) {
     cout << "fast_ms=" << fast_ms.count() << '\n';
     cout << "aks=" << (aks ? "prime" : "composite") << '\n';
     cout << "aks_ms=" << aks_ms.count() << '\n';
+    cout << "previous_prime_found=" << (has_previous_prime ? "yes" : "no") << '\n';
+    cout << "previous_prime=" << (has_previous_prime ? previous_prime.to_string() : "none") << '\n';
+    cout << "previous_prime_ms=" << previous_ms.count() << '\n';
+    cout << "next_prime=" << next_prime.to_string() << '\n';
+    cout << "next_prime_ms=" << next_ms.count() << '\n';
+    cout << "neighbor_method=fast_miller_rabin" << '\n';
     cout << "agree=" << (ordinary == fast ? "yes" : "no") << '\n';
     cout << "all_agree=" << ((ordinary == fast && fast == aks) ? "yes" : "no") << '\n';
 
