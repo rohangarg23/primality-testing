@@ -16,8 +16,7 @@ def normalize_number(raw: str) -> str:
     return text
 
 
-def call_cpp_backend(raw: str, fmt: str) -> dict[str, str]:
-    value = normalize_number(raw)
+def run_backend_command(args: list[str]) -> dict[str, str]:
     if not BACKEND_PATH.exists():
         raise RuntimeError(
             "C++ backend not found. Build it with:\n"
@@ -26,7 +25,7 @@ def call_cpp_backend(raw: str, fmt: str) -> dict[str, str]:
         )
 
     completed = subprocess.run(
-        [str(BACKEND_PATH), "check", fmt, value],
+        [str(BACKEND_PATH), *args],
         capture_output=True,
         text=True,
         check=False,
@@ -43,37 +42,18 @@ def call_cpp_backend(raw: str, fmt: str) -> dict[str, str]:
         key, val = line.split("=", 1)
         data[key.strip()] = val.strip()
     return data
+
+
+def call_cpp_backend(raw: str, fmt: str) -> dict[str, str]:
+    value = normalize_number(raw)
+    return run_backend_command(["check", fmt, value])
 
 
 def call_cpp_prime_generator(bit_count: str) -> dict[str, str]:
     value = "".join(bit_count.split())
     if not value:
         raise ValueError("Please enter a bit length.")
-    if not BACKEND_PATH.exists():
-        raise RuntimeError(
-            "C++ backend not found. Build it with:\n"
-            "g++ -std=c++17 -O2 -Wall -Wextra -pedantic "
-            "primality_backend.cpp big_int.cpp miller_rabin.cpp aks.cpp -o primality_backend.exe"
-        )
-
-    completed = subprocess.run(
-        [str(BACKEND_PATH), "generate", value],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    if completed.returncode != 0:
-        error_text = completed.stderr.strip() or completed.stdout.strip() or "Backend failed."
-        raise RuntimeError(error_text)
-
-    data: dict[str, str] = {}
-    for line in completed.stdout.splitlines():
-        if "=" not in line:
-            continue
-        key, val = line.split("=", 1)
-        data[key.strip()] = val.strip()
-    return data
+    return run_backend_command(["generate", value])
 
 
 class PrimalityApp:
@@ -117,7 +97,7 @@ class PrimalityApp:
         ttk.Button(generate_row, text="Generate Prime", command=self.generate_prime).pack(side="left")
 
         self.summary_var = tk.StringVar(
-            value="Enter a number and click Check Prime. AKS is exact but slower on larger inputs."
+            value="Enter a number and click Check Prime. The app also shows previous and next probable primes."
         )
         ttk.Label(container, textvariable=self.summary_var, font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(0, 10))
 
@@ -130,7 +110,7 @@ class PrimalityApp:
         self.result_box.configure(state="normal")
         self.result_box.delete("1.0", "end")
         self.result_box.configure(state="disabled")
-        self.summary_var.set("Enter a number and click Check Prime. AKS is exact but slower on larger inputs.")
+        self.summary_var.set("Enter a number and click Check Prime. The app also shows previous and next probable primes.")
 
     def write_result(self, text: str) -> None:
         self.result_box.configure(state="normal")
@@ -146,8 +126,18 @@ class PrimalityApp:
             messagebox.showerror("Invalid input", str(exc))
             return
 
-        summary = "All methods agree." if result["all_agree"] == "yes" else "At least one method disagrees."
+        summary = (
+            "All methods agree. Neighbor search uses fast Miller-Rabin."
+            if result["all_agree"] == "yes"
+            else "At least one method disagrees. Neighbor search uses fast Miller-Rabin."
+        )
         self.summary_var.set(summary)
+
+        previous_prime_line = (
+            result["previous_prime"]
+            if result.get("previous_prime_found") == "yes"
+            else "None below 2"
+        )
 
         result_text = (
             f"Number:\n{result['number']}\n\n"
@@ -161,6 +151,11 @@ class PrimalityApp:
             f"AKS primality test:\n"
             f"  Result: {'prime' if result['aks'] == 'prime' else 'composite'}\n"
             f"  Time: {float(result['aks_ms']):.3f} ms\n\n"
+            f"Neighbor search using fast Miller-Rabin:\n"
+            f"  Previous probable prime: {previous_prime_line}\n"
+            f"  Previous search time: {float(result['previous_prime_ms']):.3f} ms\n"
+            f"  Next probable prime: {result['next_prime']}\n"
+            f"  Next search time: {float(result['next_prime_ms']):.3f} ms\n\n"
             f"Miller-Rabin agreement: {result['agree']}\n"
             f"All methods agree: {result['all_agree']}\n"
         )
