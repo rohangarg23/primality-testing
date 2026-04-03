@@ -135,3 +135,53 @@ big_int generate_probable_prime(size_t bits) {
         }
     }
 }
+
+big_int next_probable_prime(const big_int& n, bool use_fast_mod) {
+    if (n < big_int(2)) {
+        return big_int(2);
+    }
+
+    big_int candidate = n + big_int(1);
+    if (candidate == big_int(2)) {
+        return candidate;
+    }
+    if (!candidate.is_odd()) {
+        candidate = candidate + big_int(1);
+    }
+
+    while (true) {
+        if (miller_rabin(candidate, use_fast_mod)) {
+            return candidate;
+        }
+        candidate = candidate + big_int(2);
+    }
+}
+
+bool previous_probable_prime(const big_int& n, big_int& result, bool use_fast_mod) {
+    if (n <= big_int(2)) {
+        return false;
+    }
+    if (n == big_int(3)) {
+        result = big_int(2);
+        return true;
+    }
+
+    big_int candidate = n - big_int(1);
+    if (candidate == big_int(2)) {
+        result = candidate;
+        return true;
+    }
+    if (!candidate.is_odd()) {
+        candidate = candidate - big_int(1);
+    }
+
+    while (candidate >= big_int(3)) {
+        if (miller_rabin(candidate, use_fast_mod)) {
+            result = candidate;
+            return true;
+        }
+        candidate = candidate - big_int(2);
+    }
+
+    return false;
+}
