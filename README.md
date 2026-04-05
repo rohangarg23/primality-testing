@@ -1,140 +1,240 @@
-# Primality Testing Project
+# Primality Testing: Theory, Implementation, and Experimental Comparison
 
-This project explores multiple ways to test whether a number is prime and compares their runtime behavior on real inputs.
+This repository is the final CS648 project submission for a complete primality-testing study that combines theory, implementation, experimentation, and user-facing tools in one place.
 
-It currently includes:
-- A custom `big_int` implementation for large integer arithmetic
-- Miller-Rabin primality testing with two modular reduction strategies
-- An AKS primality test implementation
-- A simple square-root primality baseline
-- A C++ console app for manual testing and dataset checks
-- A C++ backend plus Python Tkinter GUI applet
-- Benchmark and plotting scripts for cumulative runtime comparison
+The project compares:
+- a simple square-root primality baseline
+- Miller-Rabin using ordinary modular arithmetic
+- Miller-Rabin using a faster modular reduction path
+- the deterministic AKS primality test
+- Fermat-test behavior on composites and Carmichael numbers
 
-## Algorithms Included
+Alongside the algorithms, the repository includes:
+- a custom `big_int` implementation for large integer arithmetic
+- a C++ console program for manual testing and dataset-based checking
+- a C++ backend used by a Python Tkinter GUI
+- prime generation and neighbor-prime search
+- benchmark scripts and generated figures
+- the final report and presentation sources
+
+## Project Highlights
+
+- Implemented a custom `big_int` class and used it to support large-number primality testing.
+- Built two Miller-Rabin variants to compare ordinary modulo against a faster modular reduction path.
+- Integrated AKS to contrast a deterministic primality test with practical probabilistic methods.
+- Added a GUI applet for prime checking, prime generation, and previous/next-prime lookup.
+- Added a backend CLI so the algorithms can also be scripted and benchmarked.
+- Produced benchmark plots showing how runtime changes with input size and search strategy.
+- Included experimental figures illustrating why Fermat's test can fail on Carmichael numbers.
+
+## Quick Start
+
+Build the backend:
+
+```powershell
+g++ -std=c++17 -O2 -Wall -Wextra -pedantic primality_backend.cpp big_int.cpp miller_rabin.cpp aks.cpp -o primality_backend.exe
+```
+
+Run the GUI:
+
+```powershell
+python primality_gui.py
+```
+
+Check a number directly from the backend:
+
+```powershell
+.\primality_backend.exe check dec 101
+.\primality_backend.exe check hex FF
+.\primality_backend.exe generate 128
+```
+
+## What The Project Implements
 
 ### 1. Square-root primality test
-This is the simple baseline method:
-- Try dividing `n` by integers up to `sqrt(n)`
-- Exact, but slow for larger inputs
-- Included mainly for comparison
 
-Reference file:
+This is the classical exact baseline:
+- for an integer `n`, test divisibility up to `sqrt(n)`
+- exact, simple, and easy to explain
+- becomes impractical quickly as numbers grow
+
+Main reference file:
 - `simple-square-root-algo.cpp`
 
 ### 2. Miller-Rabin with ordinary modulo
-This version uses the project's normal division/modulo path for modular multiplication.
+
+This version uses the regular modular arithmetic path in the project.
 
 Properties:
-- Fast in practice
-- Probabilistic in general
-- Used in the comparison app and benchmark scripts
+- practical and fast
+- probabilistic for general inputs
+- useful as the main high-speed primality checker
 
 ### 3. Miller-Rabin with fast modulo
-This version uses the project's custom `fast_mod` reduction path.
+
+This version uses a faster modular reduction path while keeping the same Miller-Rabin logic.
 
 Properties:
-- Same primality logic as Miller-Rabin ordinary modulo
-- Different modular arithmetic implementation
-- Intended to compare arithmetic performance
+- same primality logic as the ordinary version
+- intended to measure arithmetic-performance gains
+- used in the backend, console testing, GUI, and benchmarks
 
-Main files:
+Main implementation files:
 - `miller_rabin.cpp`
 - `miller_rabin.h`
 - `big_int.cpp`
 - `big_int.h`
 
 ### 4. AKS primality test
-This is a deterministic primality test.
+
+AKS is the deterministic primality-testing algorithm included for comparison.
 
 Properties:
-- Exact, unlike Miller-Rabin
-- Much slower than Miller-Rabin in practice
-- Useful for correctness comparison and study
+- deterministic and exact
+- much slower than Miller-Rabin in practice for this project
+- useful as a theory-grounded reference point in the experiments
 
 Main files:
 - `aks.cpp`
 - `aks.h`
 
-## Main Project Files
+Important note:
+- The AKS code implementation in this repository was written using ChatGPT.
 
-- `big_int.cpp`, `big_int.h`: big integer arithmetic
-- `miller_rabin.cpp`, `miller_rabin.h`: Miller-Rabin implementation and prime generation
-- `aks.cpp`, `aks.h`: AKS primality test
-- `primality_backend.cpp`: command-line backend used by the GUI and benchmark scripts
-- `primality_gui.py`: Tkinter applet for checking primality and generating probable primes
-- `main.cpp`: console menu app for decimal, hexadecimal, and dataset-based testing
-- `benchmark.cpp`: older runtime benchmark for Miller-Rabin ordinary vs fast modulo
-- `plot_benchmark.py`: plot generator for `benchmark.cpp` output
-- `plot_prime_cumulative_benchmark.py`: cumulative benchmarking script using uploaded prime list data
-- `plot_pairwise_comparisons.py`: generates pairwise comparison plots from the cumulative benchmark CSV
-- `primes1_till_1e8.txt`: whitespace-separated prime list used for cumulative runtime experiments
+## User Interfaces and Workflow
 
-## Requirements
+The project can be used in three main ways:
 
-### C++
-- A compiler with C++17 support
-- Example: `g++`
+1. GUI workflow  
+   Build `primality_backend.exe`, then run `python primality_gui.py`.
 
-### Python
-- Python 3
-- Tkinter for the GUI applet
+2. Backend CLI workflow  
+   Use `primality_backend.exe` directly for checking numbers or generating primes.
 
-The Python plotting scripts in this repo do not require external plotting libraries such as `matplotlib`; they generate SVG files directly.
+3. Console workflow  
+   Build and run `primality_testing_app.exe` for menu-based testing and dataset evaluation.
+
+The overall flow is:
+
+```text
+Input number / bit length
+        |
+        v
+     big_int
+        |
+        v
+Miller-Rabin / AKS / helper search
+        |
+        +--> GUI results
+        +--> CLI output
+        +--> benchmark scripts
+```
+
+## GUI Screenshots
+
+Prime checking interface:
+
+![Prime checking GUI](gui_pictures/gui_check_prime.png)
+
+Prime generation interface:
+
+![Prime generation GUI](gui_pictures/gui_generate_image.png)
+
+The GUI supports:
+- decimal input
+- hexadecimal input
+- Miller-Rabin ordinary result and timing
+- Miller-Rabin fast result and timing
+- AKS result and timing
+- agreement checks between methods
+- previous probable prime lookup
+- next probable prime lookup
+- probable-prime generation by bit length
+
+## Repository Structure
+
+```text
+.
+|-- big_int.cpp / big_int.h
+|-- miller_rabin.cpp / miller_rabin.h
+|-- aks.cpp / aks.h
+|-- primality_backend.cpp
+|-- primality_gui.py
+|-- main.cpp
+|-- benchmark.cpp
+|-- plot_benchmark.py
+|-- plot_prime_cumulative_benchmark.py
+|-- plot_pairwise_comparisons.py
+|-- plot_bit_length_prime_search_comparison.py
+|-- generate_aks_miller_rabin_report_plots.py
+|-- by_using_fermat_little.cpp
+|-- prime_dataset.json
+|-- primes1_till_1e8.txt
+|-- primes_100_to_200_bits.csv
+|-- 100_bit_primes.txt
+|-- experiment_plots/
+|-- gui_pictures/
+|-- images/
+|-- CS648_Project_Report_Group_230272.tex
+|-- CS648_Project_Report_Group_230272_updated.pdf
+|-- primality_ppt.tex
+|-- primality_ppt_updated.pdf
+```
 
 ## Build Instructions
 
-### Build the GUI/backend executable
+### Build the backend used by the GUI and scripts
+
 ```powershell
 g++ -std=c++17 -O2 -Wall -Wextra -pedantic primality_backend.cpp big_int.cpp miller_rabin.cpp aks.cpp -o primality_backend.exe
 ```
 
 ### Build the console application
+
 ```powershell
 g++ -std=c++17 -O2 -Wall -Wextra -pedantic main.cpp big_int.cpp miller_rabin.cpp aks.cpp -o primality_testing_app.exe
 ```
 
-### Build the older Miller-Rabin benchmark
+### Build the Miller-Rabin runtime benchmark
+
 ```powershell
 g++ -std=c++17 -O2 -Wall -Wextra -pedantic benchmark.cpp big_int.cpp miller_rabin.cpp -o benchmark.exe
 ```
 
+### Notes
+
+- The main project code uses standard C++17.
+- The GUI requires Python 3 with Tkinter.
+- Most plotting scripts in this repository use only Python standard-library modules and generate SVG output directly.
+- `generate_aks_miller_rabin_report_plots.py` additionally uses `matplotlib` because it regenerates the report-ready PNG figures.
+- `by_using_fermat_little.cpp` is an auxiliary experiment file and uses Boost.Multiprecision.
+
 ## How To Run
 
-### 1. Run the GUI applet
-First build `primality_backend.exe`, then run:
+### GUI applet
+
+Run:
 
 ```powershell
 python primality_gui.py
 ```
 
-The applet supports:
-- Decimal input
-- Hexadecimal input
-- Checking with Miller-Rabin ordinary modulo
-- Checking with Miller-Rabin fast modulo
-- Checking with AKS
-- Generating a probable prime of a chosen bit length
+What it does:
+- checks primality using Miller-Rabin ordinary, Miller-Rabin fast, and AKS
+- reports runtimes for each method
+- shows whether all methods agree
+- reports the previous and next probable prime near the input
+- generates a probable prime for a requested bit length
 
-Note:
-- AKS is exact but slow
-- For larger numbers, the AKS result may take much longer than Miller-Rabin
+Important note:
+- the previous/next-prime search uses fast Miller-Rabin, so these neighbors are reported as probable primes
 
-### 2. Run the console app
-```powershell
-.\primality_testing_app.exe
-```
+### Backend CLI
 
-It provides:
-- Decimal number testing
-- Hexadecimal number testing
-- Batch testing from a Wycheproof-style JSON dataset
-
-### 3. Use the backend directly
 Check a decimal number:
 
 ```powershell
-.\primality_backend.exe check dec 101
+.\primality_backend.exe check dec 100
 ```
 
 Check a hexadecimal number:
@@ -149,20 +249,53 @@ Generate a probable prime:
 .\primality_backend.exe generate 128
 ```
 
-Backend output includes:
-- The number
-- Bit length
-- Miller-Rabin ordinary result and time
-- Miller-Rabin fast result and time
-- AKS result and time
-- Agreement flags
+The `check` command reports:
+- the input number
+- bit length
+- Miller-Rabin ordinary result and runtime
+- Miller-Rabin fast result and runtime
+- AKS result and runtime
+- previous probable prime and search time
+- next probable prime and search time
+- agreement flags between methods
 
-## Benchmarking
-
-### A. Older Miller-Rabin benchmark
-This compares ordinary modulo vs fast modulo Miller-Rabin across bit lengths.
+### Console application
 
 Run:
+
+```powershell
+.\primality_testing_app.exe
+```
+
+The console program offers:
+- testing one decimal number
+- testing one hexadecimal number
+- running a batch accuracy test from a Wycheproof-style JSON dataset
+
+Dataset mode uses:
+- `prime_dataset.json` or another compatible JSON file
+- a user-selected minimum bit length
+
+It prints:
+- number of vectors seen
+- number of vectors tested
+- number skipped below the threshold
+- ordinary-modulo accuracy
+- fast-modulo accuracy
+- agreement between both Miller-Rabin variants
+
+## Benchmarking and Experiments
+
+This repository includes several benchmark and experiment workflows.
+
+### 1. Miller-Rabin ordinary vs fast modulo
+
+Files:
+- `benchmark.cpp`
+- `plot_benchmark.py`
+
+Run:
+
 ```powershell
 .\benchmark.exe
 python plot_benchmark.py
@@ -172,93 +305,176 @@ Outputs:
 - `benchmark_times.csv`
 - `benchmark_plot.svg`
 
-### B. Cumulative benchmark using prime list
-This script reads primes from `primes1_till_1e8.txt`, benchmarks:
-- square-root test
-- Miller-Rabin ordinary modulo
-- Miller-Rabin fast modulo
-- AKS
+Purpose:
+- compares the two Miller-Rabin arithmetic variants across bit lengths
 
-and then plots cumulative time from the first processed prime up to each x-axis prime value.
+### 2. Cumulative benchmark on prime inputs
+
+Files:
+- `plot_prime_cumulative_benchmark.py`
+- `primes1_till_1e8.txt`
 
 Run:
+
 ```powershell
 python plot_prime_cumulative_benchmark.py --max-primes 100
 ```
-
-Useful options:
-- `--input`: choose a different prime list file
-- `--backend`: choose a different backend executable
-- `--max-primes`: number of primes to benchmark
-- `--plot-every`: keep every Nth processed prime as an output point
-- `--progress-every`: print progress during long runs
 
 Outputs:
 - `prime_cumulative_benchmark.csv`
 - `prime_cumulative_benchmark.svg`
 
-Important:
-- AKS becomes very slow quickly
-- Running this over a large portion of all primes up to `1e8` can take a very long time
+Purpose:
+- benchmarks cumulative runtime on prime inputs
+- compares square-root testing, Miller-Rabin ordinary, Miller-Rabin fast, and AKS
 
-## Pairwise Plot Generation
+Important note:
+- AKS becomes slow very quickly, so large runs should be done carefully
 
-If `prime_cumulative_benchmark.csv` already exists, generate comparison plots directly from it:
+### 3. Pairwise runtime comparison plots
 
-```powershell
-python plot_pairwise_comparisons.py
-```
+File:
+- `plot_pairwise_comparisons.py`
 
-This creates:
-- `comparison_plots/square_root_vs_aks.svg`
-- `comparison_plots/square_root_vs_miller_rabin.svg`
-- `comparison_plots/miller_rabin_fast_vs_ordinary.svg`
-- `comparison_plots/aks_vs_miller_rabin.svg`
-
-## Example Workflow
-
-### Check a number in the applet
-1. Build `primality_backend.exe`
-2. Run `python primality_gui.py`
-3. Enter a decimal or hexadecimal number
-4. Click `Check Prime`
-5. Read the result and timings for all methods
-
-### Generate benchmark plots
-1. Build `primality_backend.exe`
-2. Run:
+Recommended run command:
 
 ```powershell
-python plot_prime_cumulative_benchmark.py --max-primes 100
-python plot_pairwise_comparisons.py
+python plot_pairwise_comparisons.py --output-dir images
 ```
 
-3. Open the generated SVG files in a browser or image viewer
+Generated figures include:
+- `images/square_root_vs_miller_rabin.svg`
+- `images/miller_rabin_fast_vs_ordinary.svg`
+- `images/aks_vs_miller_rabin.svg`
+
+Purpose:
+- makes side-by-side cumulative-runtime comparisons easier to present and analyze
+
+### 4. Bit-length prime-search benchmark
+
+File:
+- `plot_bit_length_prime_search_comparison.py`
+
+Run:
+
+```powershell
+python plot_bit_length_prime_search_comparison.py --min-bits 1 --max-bits 200 --sqrt-max-seconds-per-bit 2.0
+```
+
+Outputs:
+- `bit_length_prime_search_benchmark.csv`
+- `images/bit_length_prime_search_comparison.svg`
+- `images/bit_length_prime_search_comparison_log.svg`
+
+Purpose:
+- for each bit length, finds the first prime of that size
+- compares cumulative search time for square-root search and Miller-Rabin
+- stops the square-root side early when it becomes too slow
+
+### 5. Fermat and Carmichael experiment figures
+
+Files:
+- `experiment_plots/failure_fermat.png`
+- `experiment_plots/failure_fermat_among_gcd(a,n)_1.png`
+- `by_using_fermat_little.cpp`
+
+Purpose:
+- illustrates where Fermat-based reasoning can fail on Carmichael numbers
+- highlights the witness behavior for non-Carmichael composites
+- supports the theoretical discussion that non-Carmichael composites have many bases that expose compositeness
+
+Note:
+- the generated experiment figures are included in the repository
+- `by_using_fermat_little.cpp` is an auxiliary experimental file in the repo, but the exact plotting script for these final images is not part of the current tree
+
+### 6. Regenerating the AKS and Miller-Rabin report figures
+
+File:
+- `generate_aks_miller_rabin_report_plots.py`
+
+This script regenerates these figure files:
+- `images/aks_runtime_plot.png`
+- `images/miller_rabin_runtime_plot.png`
+- `images/aks_vs_miller_rabin_plot.png`
+- `images/aks_miller_rabin_ratio_plot.png`
+- `images/aks_vs_miller_rabin_extended_plot.png`
+
+Default assumed CSV inputs:
+- `aks_runtime_samples.csv`
+- `miller_rabin_runtime_samples.csv`
+
+Expected CSV columns:
+- `bit_length`
+- `runtime_ms`
+
+Notes:
+- multiple rows per bit length are allowed
+- the script computes the average runtime per bit length automatically
+- these large CSV files are assumed to exist locally and are not required to be committed to the repository
+
+Run:
+
+```powershell
+python generate_aks_miller_rabin_report_plots.py
+```
+
+If your CSV files have different names:
+
+```powershell
+python generate_aks_miller_rabin_report_plots.py --aks-csv my_aks_data.csv --mr-csv my_miller_rabin_data.csv
+```
+
+## Selected Figures
+
+Miller-Rabin ordinary vs fast modulo:
+
+![Miller-Rabin fast vs ordinary](images/miller_rabin_fast_vs_ordinary.png)
+
+Bit-length prime-search comparison on log scale:
+
+![Bit-length prime search comparison](images/bit_length_prime_search_comparison_log.png)
+
+Fermat failure experiment:
+
+![Fermat failure plot](experiment_plots/failure_fermat.png)
+
+## Main Results and Takeaways
+
+- Miller-Rabin is the practical winner in this project and is dramatically faster than square-root search and AKS on larger inputs.
+- The fast-modulo Miller-Rabin implementation improves runtime over the ordinary-modulo variant in the benchmark study.
+- AKS is valuable as a deterministic comparison point, but it is not competitive with Miller-Rabin for practical use here.
+- In the bit-length prime-search benchmark, square-root search becomes impractical and is stopped early once the per-bit time limit is exceeded.
+- The Fermat experiment figures reinforce that Carmichael numbers can fool Fermat-style tests, which motivates stronger tests such as Miller-Rabin.
+
+## Final Documents
+
+Report source:
+- [CS648_Project_Report_Group_230272.tex](CS648_Project_Report_Group_230272.tex)
+
+Final report PDF:
+- [CS648_Project_Report_Group_230272_updated.pdf](CS648_Project_Report_Group_230272_updated.pdf)
+
+Presentation source:
+- [primality_ppt.tex](primality_ppt.tex)
+
+Presentation PDF:
+- [primality_ppt_updated.pdf](primality_ppt_updated.pdf)
 
 ## Notes and Limitations
 
-- Miller-Rabin in this project is used as a practical fast primality checker
-- AKS is included for deterministic comparison, not for speed
-- The square-root method is only practical for relatively small numbers
-- The custom `big_int` implementation is educational and project-specific, not a replacement for industrial big integer libraries
-- The GUI depends on the backend executable being present in the same folder
-- Some generated `.exe`, `.csv`, and `.svg` files in the repo are build/runtime artifacts
+- Miller-Rabin returns a probable-prime result, not a deterministic proof of primality.
+- The neighbor-prime search in the GUI and backend uses fast Miller-Rabin, so it also returns probable primes.
+- AKS is exact but slow in this codebase and is mainly included for comparison and study.
+- The square-root method is included as a simple exact baseline, not as a scalable solution.
+- Some `.exe`, `.csv`, `.svg`, `.png`, `.pdf`, and LaTeX auxiliary files in the repository are generated artifacts from experiments and documentation builds.
 
-## Current Outputs You May See In The Repo
+## Attribution and References
 
-Depending on what has already been run, the repo may contain generated files such as:
-- `primality_backend.exe`
-- `primality_testing_app.exe`
-- `benchmark.exe`
-- `prime_cumulative_benchmark.csv`
-- `prime_cumulative_benchmark.svg`
-- files inside `comparison_plots/`
+- M. Agrawal, N. Kayal, and N. Saxena, *PRIMES is in P*, Annals of Mathematics, 160(2), 781-793, 2004.
+- G. L. Miller, *Riemann's Hypothesis and Tests for Primality*, Journal of Computer and System Sciences, 1976.
+- M. O. Rabin, *Probabilistic Algorithm for Testing Primality*, Journal of Number Theory, 1980.
+- The AKS code implementation included in this repository was written using ChatGPT.
 
-## Project Goal
+## Summary
 
-The goal of this project is not only to test primality, but also to compare:
-- simple exact methods
-- fast probabilistic methods
-- deterministic polynomial-time methods
-
-in one codebase with both interactive and benchmarking workflows.
+This project is not just a single primality checker. It is a combined theory-and-systems project that studies exact and probabilistic testing, compares their runtime behavior, builds interactive tooling around them, and documents the results through a report, presentation, plots, and experiments.
