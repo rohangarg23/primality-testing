@@ -8,8 +8,8 @@ from pathlib import Path
 
 
 DEFAULT_CSV = Path("bit_length_prime_search_benchmark.csv")
-DEFAULT_SVG = Path("comparison_plots/bit_length_prime_search_comparison.svg")
-DEFAULT_LOG_SVG = Path("comparison_plots/bit_length_prime_search_comparison_log.svg")
+DEFAULT_SVG = Path("images/bit_length_prime_search_comparison.svg")
+DEFAULT_LOG_SVG = Path("images/bit_length_prime_search_comparison_log.svg")
 WITNESSES = (2, 3, 5, 7, 11, 13, 17, 19, 23)
 
 
